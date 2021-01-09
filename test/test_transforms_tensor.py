@@ -152,27 +152,29 @@ class Tester(TransformsTester):
 
     def test_pad(self):
         for m in ["constant", "edge", "reflect", "symmetric"]:
-            fill = 127 if m == "constant" else 0
             for mul in [1, -1]:
-                # Test functional.pad (PIL and Tensor) with padding as single int
-                self._test_functional_op(
-                    "pad", fn_kwargs={"padding": mul * 2, "fill": fill, "padding_mode": m}
-                )
-                # Test functional.pad and transforms.Pad with padding as [int, ]
-                fn_kwargs = meth_kwargs = {"padding": [mul * 2, ], "fill": fill, "padding_mode": m}
-                self._test_op(
-                    "pad", "Pad", fn_kwargs=fn_kwargs, meth_kwargs=meth_kwargs
-                )
-                # Test functional.pad and transforms.Pad with padding as list
-                fn_kwargs = meth_kwargs = {"padding": [mul * 4, 4], "fill": fill, "padding_mode": m}
-                self._test_op(
-                    "pad", "Pad", fn_kwargs=fn_kwargs, meth_kwargs=meth_kwargs
-                )
-                # Test functional.pad and transforms.Pad with padding as tuple
-                fn_kwargs = meth_kwargs = {"padding": (mul * 2, 2, 2, mul * 2), "fill": fill, "padding_mode": m}
-                self._test_op(
-                    "pad", "Pad", fn_kwargs=fn_kwargs, meth_kwargs=meth_kwargs
-                )
+                for fill in [85, (10, -10, 10), 0.7, [0.0, 0.0, 0.0], [1, ], 0]:
+                    if m != 'constant' and fill != 0:
+                        continue
+                    # Test functional.pad (PIL and Tensor) with padding as single int
+                    self._test_functional_op(
+                        "pad", fn_kwargs={"padding": mul * 2, "fill": fill, "padding_mode": m}
+                    )
+                    # Test functional.pad and transforms.Pad with padding as [int, ]
+                    fn_kwargs = meth_kwargs = {"padding": [mul * 2, ], "fill": fill, "padding_mode": m}
+                    self._test_op(
+                        "pad", "Pad", fn_kwargs=fn_kwargs, meth_kwargs=meth_kwargs
+                    )
+                    # Test functional.pad and transforms.Pad with padding as list
+                    fn_kwargs = meth_kwargs = {"padding": [mul * 4, 4], "fill": fill, "padding_mode": m}
+                    self._test_op(
+                        "pad", "Pad", fn_kwargs=fn_kwargs, meth_kwargs=meth_kwargs
+                    )
+                    # Test functional.pad and transforms.Pad with padding as tuple
+                    fn_kwargs = meth_kwargs = {"padding": (mul * 2, 2, 2, mul * 2), "fill": fill, "padding_mode": m}
+                    self._test_op(
+                        "pad", "Pad", fn_kwargs=fn_kwargs, meth_kwargs=meth_kwargs
+                    )
 
     def test_crop(self):
         fn_kwargs = {"top": 2, "left": 3, "height": 4, "width": 5}
@@ -187,6 +189,10 @@ class Tester(TransformsTester):
             {"padding_mode": "constant", "fill": 0},
             {"padding_mode": "constant", "fill": 10},
             {"padding_mode": "constant", "fill": 20},
+            {"padding_mode": "constant", "fill": (10, -10, 10)},
+            {"padding_mode": "constant", "fill": [0.0, 0.0, 0.0]},
+            {"padding_mode": "constant", "fill": 0.7},
+            {"padding_mode": "constant", "fill": [1, ]},
             {"padding_mode": "edge"},
             {"padding_mode": "reflect"},
         ]
