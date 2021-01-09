@@ -327,11 +327,9 @@ class Pad(torch.nn.Module):
             on left/right and top/bottom respectively. If a sequence of length 4 is provided
             this is the padding for the left, top, right and bottom borders respectively.
             In torchscript mode padding as single int is not supported, use a sequence of length 1: ``[padding, ]``.
-        fill (number or str or tuple): Pixel fill value for constant fill. Default is 0. If a tuple of
+        fill (number or sequence): Pixel fill value for constant fill. Default is 0. If a tuple of
             length 3, it is used to fill R, G, B channels respectively.
             This value is only used when the padding_mode is constant.
-            Only number is supported for torch Tensor.
-            Only int or str or tuple value is supported for PIL Image.
         padding_mode (str): Type of padding. Should be: constant, edge, reflect or symmetric.
             Default is constant.
 
@@ -377,7 +375,13 @@ class Pad(torch.nn.Module):
         Returns:
             PIL Image or Tensor: Padded image.
         """
-        return F.pad(img, self.padding, self.fill, self.padding_mode)
+        fill = self.fill
+        if isinstance(img, Tensor):
+            if isinstance(fill, (int, float)):
+                fill = [float(fill)] * F._get_image_num_channels(img)
+            else:
+                fill = [float(f) for f in fill]
+        return F.pad(img, self.padding, fill, self.padding_mode)
 
     def __repr__(self):
         return self.__class__.__name__ + '(padding={0}, fill={1}, padding_mode={2})'.\
@@ -506,11 +510,9 @@ class RandomCrop(torch.nn.Module):
         pad_if_needed (boolean): It will pad the image if smaller than the
             desired size to avoid raising an exception. Since cropping is done
             after padding, the padding seems to be done at a random offset.
-        fill (number or str or tuple): Pixel fill value for constant fill. Default is 0. If a tuple of
+        fill (number or sequence): Pixel fill value for constant fill. Default is 0. If a tuple of
             length 3, it is used to fill R, G, B channels respectively.
             This value is only used when the padding_mode is constant.
-            Only number is supported for torch Tensor.
-            Only int or str or tuple value is supported for PIL Image.
         padding_mode (str): Type of padding. Should be: constant, edge, reflect or symmetric. Default is constant.
 
              - constant: pads with a constant value, this value is specified with fill
@@ -575,8 +577,15 @@ class RandomCrop(torch.nn.Module):
         Returns:
             PIL Image or Tensor: Cropped image.
         """
+        fill = self.fill
+        if isinstance(img, Tensor):
+            if isinstance(fill, (int, float)):
+                fill = [float(fill)] * F._get_image_num_channels(img)
+            else:
+                fill = [float(f) for f in fill]
+
         if self.padding is not None:
-            img = F.pad(img, self.padding, self.fill, self.padding_mode)
+            img = F.pad(img, self.padding, fill, self.padding_mode)
 
         width, height = F._get_image_size(img)
         # pad the width if needed
