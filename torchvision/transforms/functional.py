@@ -381,7 +381,7 @@ def scale(*args, **kwargs):
     return resize(*args, **kwargs)
 
 
-def pad(img: Tensor, padding: List[int], fill: int = 0, padding_mode: str = "constant") -> Tensor:
+def pad(img: Tensor, padding: List[int], fill: List[float], padding_mode: str = "constant") -> Tensor:
     r"""Pad the given image on all sides with the given "pad" value.
     If the image is torch Tensor, it is expected
     to have [..., H, W] shape, where ... means an arbitrary number of leading dimensions
@@ -393,11 +393,9 @@ def pad(img: Tensor, padding: List[int], fill: int = 0, padding_mode: str = "con
             on left/right and top/bottom respectively. If a sequence of length 4 is provided
             this is the padding for the left, top, right and bottom borders respectively.
             In torchscript mode padding as single int is not supported, use a sequence of length 1: ``[padding, ]``.
-        fill (number or str or tuple): Pixel fill value for constant fill. Default is 0.
+        fill (number or sequence): Pixel fill value for constant fill. Default is 0.
             If a tuple of length 3, it is used to fill R, G, B channels respectively.
             This value is only used when the padding_mode is constant.
-            Only number is supported for torch Tensor.
-            Only int or str or tuple value is supported for PIL Image.
         padding_mode: Type of padding. Should be: constant, edge, reflect or symmetric. Default is constant.
 
             - constant: pads with a constant value, this value is specified with fill

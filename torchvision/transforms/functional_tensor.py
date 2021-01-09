@@ -402,12 +402,12 @@ def _pad_symmetric(img: Tensor, padding: List[int]) -> Tensor:
         raise RuntimeError("Symmetric padding of N-D tensors are not supported yet")
 
 
-def pad(img: Tensor, padding: List[int], fill: int = 0, padding_mode: str = "constant") -> Tensor:
+def pad(img: Tensor, padding: List[int], fill: List[float], padding_mode: str = "constant") -> Tensor:
     _assert_image_tensor(img)
 
     if not isinstance(padding, (int, tuple, list)):
         raise TypeError("Got inappropriate padding arg")
-    if not isinstance(fill, (int, float)):
+    if not isinstance(fill, (int, float, tuple, list)):
         raise TypeError("Got inappropriate fill arg")
     if not isinstance(padding_mode, str):
         raise TypeError("Got inappropriate padding_mode arg")
@@ -461,15 +461,22 @@ def pad(img: Tensor, padding: List[int], fill: int = 0, padding_mode: str = "con
         need_cast = True
         img = img.to(torch.float32)
 
-    img = torch_pad(img, p, mode=padding_mode, value=float(fill))
+    if padding_mode == 'constant':
+        out_h = img.shape[-2] + p[2] + p[3]
+        out_w = img.shape[-1] + p[0] + p[1]
+        out_img = torch.tensor(fill, dtype=img.dtype, device=img.device).view(1, len(fill), 1, 1) \
+            .expand(-1, -1, out_h, out_w).clone()
+        out_img[:, :, p[2]: out_h - p[3], p[0]: out_w - p[1]] = img
+    else:
+        out_img = torch_pad(img, p, mode=padding_mode)
 
     if need_squeeze:
-        img = img.squeeze(dim=0)
+        out_img = img.squeeze(dim=0)
 
     if need_cast:
-        img = img.to(out_dtype)
+        out_img = img.to(out_dtype)
 
-    return img
+    return out_img
 
 
 def resize(img: Tensor, size: List[int], interpolation: str = "bilinear") -> Tensor:
